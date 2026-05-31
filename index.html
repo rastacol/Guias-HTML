@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guías de IA — rastacol</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗂️</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #1a1a1a;
+      --bg2:       #242424;
+      --bg3:       #2e2e2e;
+      --border:    #2e2e2e;
+      --border2:   #3a3a3a;
+      --text:      #e0e0e0;
+      --text2:     #c8c8c8;
+      --text3:     #888;
+      --text4:     #555;
+      --accent:    #5c8ee0;
+      --sidebar-w: 220px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 15px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOPBAR móvil */
+    .topbar {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .hamburger {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text3);
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+
+    .hamburger:hover { color: var(--text); }
+    .hamburger svg { width: 20px; height: 20px; fill: currentColor; }
+
+    .topbar-title { font-size: 14px; font-weight: 600; color: var(--text); }
+
+    /* LAYOUT */
+    .layout { display: flex; flex: 1; }
+
+    /* OVERLAY móvil */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 150;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .overlay.visible { display: block; opacity: 1; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      border-right: 1px solid var(--border);
+      padding: 28px 0;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .sidebar-sub   { font-size: 11px; color: var(--text4); }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text4);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 20px;
+      font-size: 13px;
+      color: var(--text3);
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+      border-left: 2px solid transparent;
+      user-select: none;
+      text-decoration: none;
+    }
+
+    .nav-item:hover   { color: var(--text); background: var(--bg2); }
+    .nav-item.active  { color: var(--text); border-left-color: var(--accent); background: var(--bg2); }
+    .nav-item .nav-icon { font-size: 14px; min-width: 18px; text-align: center; }
+
+    .nav-divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+
+    /* MAIN */
+    .main { flex: 1; padding: 32px 28px; max-width: 700px; }
+
+    .section        { display: none; }
+    .section.active { display: block; }
+
+    .section-heading h1  { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .section-heading .desc { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
+
+    /* CARDS */
+    .guide-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--bg2);
+      border-left: 3px solid var(--border2);
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      text-decoration: none;
+      color: var(--text2);
+      transition: border-left-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .guide-card:hover { border-left-color: #555; color: #e8e8e8; background: #272727; }
+
+    .guide-icon  { font-size: 18px; min-width: 24px; text-align: center; line-height: 1; }
+    .guide-info  { flex: 1; min-width: 0; }
+
+    .guide-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #d8d8d8;
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .guide-card:hover .guide-title { color: #fff; }
+    .guide-desc  { font-size: 12px; color: #666; line-height: 1.4; }
+    .guide-meta  { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      background: var(--bg3);
+      color: #666;
+      border-radius: 3px;
+      padding: 2px 7px;
+    }
+
+    .arrow { color: #444; font-size: 14px; transition: color 0.15s, transform 0.15s; }
+    .guide-card:hover .arrow { color: #888; transform: translateX(2px); }
+
+    /* PLACEHOLDER */
+    .empty {
+      background: var(--bg2);
+      border: 1px dashed var(--border2);
+      border-radius: 4px;
+      padding: 28px 20px;
+      text-align: center;
+      color: var(--text4);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .empty span { display: block; font-size: 22px; margin-bottom: 10px; }
+
+    /* FOOTER */
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text4);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .footer a { color: var(--text4); text-decoration: none; }
+    .footer a:hover { color: var(--text3); }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      .topbar { display: flex; }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 200;
+        background: var(--bg);
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        padding-top: 16px;
+      }
+
+      .sidebar.open { transform: translateX(0); }
+      .main { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Topbar móvil -->
+  <div class="topbar">
+    <button class="hamburger" id="menuBtn" aria-label="Abrir menú">
+      <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </button>
+    <span class="topbar-title">Guías de IA</span>
+  </div>
+
+  <!-- Overlay móvil -->
+  <div class="overlay" id="overlay"></div>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">Guías de IA</div>
+        <div class="sidebar-sub">rastacol · 2026</div>
+      </div>
+
+      <div class="nav-label">Categorías</div>
+
+      <div class="nav-item active" data-section="estructuracion">
+        <span class="nav-icon">🧱</span> Estructuración de Prompts
+      </div>
+      <div class="nav-item" data-section="steering">
+        <span class="nav-icon">🎯</span> Preguntas Steering
+      </div>
+      <div class="nav-item" data-section="tonos">
+        <span class="nav-icon">🎨</span> Tonos
+      </div>
+      <div class="nav-item" data-section="restauracion">
+        <span class="nav-icon">📍</span> Puntos de Restauración
+      </div>
+      <div class="nav-item" data-section="skills">
+        <span class="nav-icon">⚙️</span> Gestión de Skills
+      </div>
+      <div class="nav-item" data-section="recursos">
+        <span class="nav-icon">🔗</span> Recursos
+      </div>
+
+      <hr class="nav-divider">
+
+      <div class="nav-label">Repositorio</div>
+      <a class="nav-item" href="https://github.com/rastacol/Guias-HTML" target="_blank">
+        <span class="nav-icon">↗</span> Ver en GitHub
+      </a>
+    </nav>
+
+    <!-- Contenido principal -->
+    <main class="main">
+
+      <!-- 1. Estructuración de Prompts -->
+      <div class="section active" id="section-estructuracion">
+        <div class="section-heading">
+          <h1>🧱 Estructuración de Prompts</h1>
+          <p class="desc">Métodos y plantillas para construir prompts efectivos.</p>
+        </div>
+
+        <a class="guide-card" href="guia-general-lector-experto.html">
+          <span class="guide-icon">📚</span>
+          <div class="guide-info">
+            <div class="guide-title">Lector Experto — Guía General del Método</div>
+            <div class="guide-desc">Sistema completo para procesar libros con IA: RAW, WIKI semántica, etapas y reglas de oro.</div>
+          </div>
+          <div class="guide-meta">
+            <span class="tag">método</span>
+            <span class="arrow">›</span>
+          </div>
+        </a>
+
+        <!-- Para agregar más guías en esta categoría, copiar el bloque <a class="guide-card"> -->
+      </div>
+
+      <!-- 2. Preguntas Steering -->
+      <div class="section" id="section-steering">
+        <div class="section-heading">
+          <h1>🎯 Preguntas Steering</h1>
+          <p class="desc">Preguntas para dirigir, cuestionar y mejorar análisis con IA.</p>
+        </div>
+
+        <a class="guide-card" href="steering_questions.html">
+          <span class="guide-icon">🎯</span>
+          <div class="guide-info">
+            <div class="guide-title">Preguntas Steering</div>
+            <div class="guide-desc">Diagnóstico, riesgo, posicionamiento y densidad para dirigir análisis con IA.</div>
+          </div>
+          <div class="guide-meta">
+            <span class="tag">prompts</span>
+            <span class="arrow">›</span>
+          </div>
+        </a>
+
+        <!-- Para agregar más guías en esta categoría, copiar el bloque <a class="guide-card"> -->
+      </div>
+
+      <!-- 3. Tonos -->
+      <div class="section" id="section-tonos">
+        <div class="section-heading">
+          <h1>🎨 Tonos</h1>
+          <p class="desc">Configuraciones de tono y voz para distintos contextos de escritura.</p>
+        </div>
+
+        <div class="empty">
+          <span>🎨</span>
+          Próximamente — agregá tus guías de tonos aquí.
+        </div>
+      </div>
+
+      <!-- 4. Puntos de Restauración -->
+      <div class="section" id="section-restauracion">
+        <div class="section-heading">
+          <h1>📍 Puntos de Restauración</h1>
+          <p class="desc">Estrategias para retomar contexto y estado en sesiones largas con IA.</p>
+        </div>
+
+        <div class="empty">
+          <span>📍</span>
+          Próximamente — agregá tus guías de restauración aquí.
+        </div>
+      </div>
+
+      <!-- 5. Gestión de Skills -->
+      <div class="section" id="section-skills">
+        <div class="section-heading">
+          <h1>⚙️ Gestión de Skills</h1>
+          <p class="desc">Organización y mantenimiento de skills para sistemas de IA.</p>
+        </div>
+
+        <div class="empty">
+          <span>⚙️</span>
+          Próximamente — agregá tus guías de skills aquí.
+        </div>
+      </div>
+
+      <!-- 6. Recursos -->
+      <div class="section" id="section-recursos">
+        <div class="section-heading">
+          <h1>🔗 Recursos</h1>
+          <p class="desc">Referencias, herramientas y materiales de apoyo.</p>
+        </div>
+
+        <div class="empty">
+          <span>🔗</span>
+          Próximamente — agregá tus recursos aquí.
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Actualizado 2026</span>
+        <a href="https://github.com/rastacol/Guias-HTML" target="_blank">Ver en GitHub →</a>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // Navegación entre secciones
+    const navItems = document.querySelectorAll('.nav-item[data-section]');
+    const sections = document.querySelectorAll('.section');
+
+    function activateSection(sectionId) {
+      navItems.forEach(i => i.classList.remove('active'));
+      sections.forEach(s => s.classList.remove('active'));
+      const targetNav     = document.querySelector(`.nav-item[data-section="${sectionId}"]`);
+      const targetSection = document.getElementById(`section-${sectionId}`);
+      if (targetNav)     targetNav.classList.add('active');
+      if (targetSection) targetSection.classList.add('active');
+    }
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        activateSection(item.dataset.section);
+        if (window.innerWidth <= 640) closeSidebar();
+      });
+    });
+
+    // Sidebar móvil
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuBtn = document.getElementById('menuBtn');
+
+    function openSidebar()  { sidebar.classList.add('open');    overlay.classList.add('visible'); }
+    function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('visible'); }
+
+    menuBtn.addEventListener('click', openSidebar);
+    overlay.addEventListener('click', closeSidebar);
+  </script>
+
+</body>
+</html>
