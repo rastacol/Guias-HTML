@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guía de Tonos — INC</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗣️</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a1a;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 15px;
+      padding: 32px 24px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    h1 { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+    .subtitle { font-size: 13px; color: #888; margin-bottom: 32px; }
+
+    details { border-bottom: 1px solid #2e2e2e; }
+
+    summary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 4px;
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+      color: #d0d0d0;
+      font-size: 15px;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    summary::before {
+      content: "▶";
+      font-size: 11px;
+      color: #666;
+      transition: transform 0.2s ease;
+      min-width: 12px;
+    }
+
+    details[open] > summary::before { transform: rotate(90deg); }
+    summary:hover { color: #fff; }
+    summary:hover::before { color: #aaa; }
+
+    .content {
+      padding: 4px 0 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Card */
+    .question {
+      position: relative;
+      background: #242424;
+      border-left: 3px solid #3a3a3a;
+      border-radius: 4px;
+      padding: 10px 16px 14px;
+      font-size: 14px;
+      color: #c8c8c8;
+      line-height: 1.5;
+    }
+
+    .question:hover { border-left-color: #555; color: #e8e8e8; }
+    .question:hover .toolbar { opacity: 1; }
+
+    /* Impact line */
+    .impact {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+
+    /* Prompt pill */
+    .prompt-box {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 4px;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 12px;
+      color: #a5d6a7;
+      padding: 7px 10px;
+      margin: 6px 0 8px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    /* Use-case tag row */
+    .usecase {
+      font-size: 11px;
+      color: #555;
+    }
+
+    .usecase strong { color: #666; }
+
+    /* Toolbar */
+    .toolbar {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .toolbar-btn {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #888;
+      width: 26px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      position: relative;
+    }
+
+    .toolbar-btn:hover { background: #2e2e2e; color: #ddd; border-color: #555; }
+    .toolbar-btn.copied { color: #6ee7b7; border-color: #6ee7b7; }
+    .toolbar-btn svg { width: 13px; height: 13px; fill: currentColor; }
+
+    .toolbar-btn[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111;
+      color: #ccc;
+      font-size: 11px;
+      white-space: nowrap;
+      padding: 3px 8px;
+      border-radius: 4px;
+      pointer-events: none;
+      border: 1px solid #333;
+      z-index: 200;
+    }
+
+    /* Dropdown */
+    .menu-wrapper { position: relative; }
+
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      background: #252525;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      min-width: 150px;
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .dropdown.open { display: block; }
+
+    .dropdown button {
+      width: 100%;
+      background: none;
+      border: none;
+      color: #c8c8c8;
+      font-size: 13px;
+      padding: 9px 14px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dropdown button:hover { background: #333; color: #fff; }
+    .dropdown button svg { width: 13px; height: 13px; fill: currentColor; opacity: 0.7; }
+  </style>
+</head>
+<body>
+
+  <h1>Guía de Tonos</h1>
+  <p class="subtitle">Prompts de referencia por tipo de tono</p>
+
+  <details open>
+    <summary>Amigable y profesional</summary>
+    <div class="content">
+      <div class="question">
+        <p class="impact">Cálido y accesible, a la vez que conocedor y competente.</p>
+        <div class="prompt-box">Escribe un mensaje amigable y profesional a un cliente que acaba de comprar [producto]</div>
+        <p class="usecase"><strong>Uso:</strong> Correos electrónicos de ventas, servicio al cliente, textos de marketing.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Autoritativo e informativo</summary>
+    <div class="content">
+      <div class="question">
+        <p class="impact">Confiado y conocedor, a la vez que informativo y útil.</p>
+        <div class="prompt-box">Crea una introducción autoritativa e informativa para un informe sobre [tendencia de la industria]</div>
+        <p class="usecase"><strong>Uso:</strong> Artículos de liderazgo intelectual, informes de la industria.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Urgente y persuasivo</summary>
+    <div class="content">
+      <div class="question">
+        <p class="impact">Alto sentido de urgencia e importancia, a la vez que persuasivo y convincente.</p>
+        <div class="prompt-box">Redacta un correo electrónico urgente y persuasivo para promocionar una oferta por tiempo limitado en [producto]</div>
+        <p class="usecase"><strong>Uso:</strong> Ofertas por tiempo limitado, campañas promocionales.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Casual y conversacional</summary>
+    <div class="content">
+      <div class="question">
+        <p class="impact">Relajado y amigable, a la vez que conversacional y atractivo.</p>
+        <div class="prompt-box">Escribe una publicación de redes sociales casual y conversacional anunciando [nuevo producto o actualización]</div>
+        <p class="usecase"><strong>Uso:</strong> Publicaciones en redes sociales, contenido de blog, comunicaciones internas.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Profesional y confiable</summary>
+    <div class="content">
+      <div class="question">
+        <p class="impact">Fiable y seguro, a la vez que profesional y pulido.</p>
+        <div class="prompt-box">Redacta un resumen ejecutivo profesional y confiable para una propuesta a [cliente potencial]</div>
+        <p class="usecase"><strong>Uso:</strong> Propuestas comerciales, resúmenes ejecutivos, presentaciones para inversores.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Humorístico e informal</summary>
+    <div class="content">
+      <div class="question">
+        <p class="impact">Entretenido y lúdico, a la vez que relajado y conversacional.</p>
+        <div class="prompt-box">Escribe una publicación de redes sociales humorística e informal sobre [evento divertido en la oficina o mascota]</div>
+        <p class="usecase"><strong>Uso:</strong> Redes sociales, contenido de blog, comunicaciones internas.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Profesional y directo</summary>
+    <div class="content">
+      <div class="question">
+        <p class="impact">Directo y conciso, a la vez que profesional y pulido.</p>
+        <div class="prompt-box">Redacta una respuesta de correo electrónico profesional y directa a una consulta sobre [servicios de la empresa]</div>
+        <p class="usecase"><strong>Uso:</strong> Correos electrónicos de negocios, comunicaciones formales, documentos legales.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Serio y empático</summary>
+    <div class="content">
+      <div class="question">
+        <p class="impact">Comprensivo y atento, a la vez que serio y sincero.</p>
+        <div class="prompt-box">Escribe un mensaje serio y empático a los clientes afectados por [evento o problema reciente]</div>
+        <p class="usecase"><strong>Uso:</strong> Comunicaciones de crisis, servicio al cliente, temas sensibles.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Positivo y entusiasta</summary>
+    <div class="content">
+      <div class="question">
+        <p class="impact">Optimista y entusiasta, a la vez que positivo y alegre.</p>
+        <div class="prompt-box">Crea un discurso de ventas positivo y entusiasta para [producto o servicio]</div>
+        <p class="usecase"><strong>Uso:</strong> Discursos de ventas, servicio al cliente, contenido motivacional.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Autoritativo y profesional</summary>
+    <div class="content">
+      <div class="question">
+        <p class="impact">Confiado y conocedor, a la vez que pulido y refinado.</p>
+        <div class="prompt-box">Redacta una declaración de apertura autoritativa y profesional para una presentación de la industria sobre [tema]</div>
+        <p class="usecase"><strong>Uso:</strong> Comunicaciones ejecutivas, presentaciones de la industria, reuniones de junta.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Casual y divertido</summary>
+    <div class="content">
+      <div class="question">
+        <p class="impact">Relajado y lúdico, a la vez que humorístico y entretenido.</p>
+        <div class="prompt-box">Escribe una publicación de redes sociales casual y divertida para una marca promocionando [producto o servicio]</div>
+        <p class="usecase"><strong>Uso:</strong> Redes sociales, comunicación de marca, marketing de contenidos.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Autoritativo y experto</summary>
+    <div class="content">
+      <div class="question">
+        <p class="impact">Confiado y conocedor, a la vez que autoritativo y respetado.</p>
+        <div class="prompt-box">Crea un artículo de opinión autoritativo y experto sobre el futuro de [industria o tecnología]</div>
+        <p class="usecase"><strong>Uso:</strong> Artículos de liderazgo intelectual, informes de la industria, opiniones de expertos.</p>
+      </div>
+    </div>
+  </details>
+
+</body>
+<script>
+  const iconCopy = `<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
+  const iconDots = `<svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>`;
+  const iconShare = `<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>`;
+
+  document.querySelectorAll('.question').forEach(q => {
+    const getText = () => {
+      const clone = q.cloneNode(true);
+      clone.querySelectorAll('.toolbar').forEach(el => el.remove());
+      // Extract only the prompt text (inside prompt-box)
+      const promptEl = clone.querySelector('.prompt-box');
+      return promptEl ? promptEl.textContent.trim() : clone.textContent.replace(/\s+/g, ' ').trim();
+    };
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'toolbar';
+
+    // Copy button
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'toolbar-btn';
+    copyBtn.setAttribute('data-tip', 'Copiar prompt');
+    copyBtn.innerHTML = iconCopy;
+    copyBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(getText()).then(() => {
+        copyBtn.classList.add('copied');
+        copyBtn.setAttribute('data-tip', '¡Copiado!');
+        setTimeout(() => {
+          copyBtn.classList.remove('copied');
+          copyBtn.setAttribute('data-tip', 'Copiar prompt');
+        }, 1500);
+      });
+    });
+    toolbar.appendChild(copyBtn);
+
+    // Dots menu
+    const menuWrapper = document.createElement('div');
+    menuWrapper.className = 'menu-wrapper';
+
+    const dotsBtn = document.createElement('button');
+    dotsBtn.className = 'toolbar-btn';
+    dotsBtn.innerHTML = iconDots;
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'dropdown';
+
+    const shareItem = document.createElement('button');
+    shareItem.innerHTML = `${iconShare} Compartir`;
+    shareItem.addEventListener('click', () => {
+      if (navigator.share) {
+        navigator.share({ text: getText() });
+      } else {
+        navigator.clipboard.writeText(getText());
+      }
+      dropdown.classList.remove('open');
+    });
+
+    const copyItem = document.createElement('button');
+    copyItem.innerHTML = `${iconCopy} Copiar prompt`;
+    copyItem.addEventListener('click', () => {
+      navigator.clipboard.writeText(getText());
+      dropdown.classList.remove('open');
+    });
+
+    dropdown.appendChild(shareItem);
+    dropdown.appendChild(copyItem);
+
+    dotsBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.dropdown.open').forEach(d => {
+        if (d !== dropdown) d.classList.remove('open');
+      });
+      dropdown.classList.toggle('open');
+    });
+
+    menuWrapper.appendChild(dotsBtn);
+    menuWrapper.appendChild(dropdown);
+    toolbar.appendChild(menuWrapper);
+
+    q.appendChild(toolbar);
+  });
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  });
+</script>
+</html>

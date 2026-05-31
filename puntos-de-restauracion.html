@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Puntos de Restauración</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔄</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a1a;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 15px;
+      padding: 32px 24px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    h1 { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+    .subtitle { font-size: 13px; color: #888; margin-bottom: 4px; }
+    .meta { font-size: 11px; color: #555; margin-bottom: 32px; line-height: 1.6; }
+
+    details { border-bottom: 1px solid #2e2e2e; }
+
+    summary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 4px;
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+      color: #d0d0d0;
+      font-size: 15px;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    summary::before {
+      content: "▶";
+      font-size: 11px;
+      color: #666;
+      transition: transform 0.2s ease;
+      min-width: 12px;
+    }
+
+    details[open] > summary::before { transform: rotate(90deg); }
+    summary:hover { color: #fff; }
+    summary:hover::before { color: #aaa; }
+
+    .content {
+      padding: 4px 0 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Card base */
+    .question {
+      position: relative;
+      background: #242424;
+      border-left: 3px solid #3a3a3a;
+      border-radius: 4px;
+      padding: 10px 16px 12px;
+      font-size: 14px;
+      color: #c8c8c8;
+      line-height: 1.5;
+    }
+
+    .question:hover { border-left-color: #555; color: #e8e8e8; }
+    .question:hover .toolbar { opacity: 1; }
+
+    /* Tag above card text */
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      background: #2e2e2e;
+      color: #888;
+      border-radius: 3px;
+      padding: 2px 7px;
+      margin-bottom: 6px;
+    }
+
+    /* Green tag variant */
+    .tag-green {
+      display: inline-block;
+      font-size: 11px;
+      background: #0f2e0d;
+      color: #127f0b;
+      border-radius: 3px;
+      padding: 2px 7px;
+      margin-bottom: 6px;
+    }
+
+    /* Code pill */
+    .pill {
+      display: inline-block;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 4px;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 12px;
+      color: #a5d6a7;
+      padding: 3px 10px;
+      margin: 3px 4px 3px 0;
+      line-height: 1.5;
+    }
+
+    /* Table */
+    .verb-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .verb-table th {
+      text-align: left;
+      color: #888;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      border-bottom: 1px solid #2e2e2e;
+    }
+
+    .verb-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #252525;
+      color: #c8c8c8;
+      vertical-align: top;
+    }
+
+    .verb-table tr:last-child td { border-bottom: none; }
+    .verb-table tr:hover td { background: #2a2a2a; }
+
+    .verb-table td:first-child {
+      font-weight: 600;
+      color: #e0e0e0;
+      white-space: nowrap;
+      width: 38%;
+    }
+
+    .verb-table td:last-child { color: #aaa; }
+
+    /* Sub-group label inside .content */
+    .sub-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #127f0b;
+      padding: 6px 0 4px;
+      border-top: 1px solid #272727;
+      margin-top: 4px;
+    }
+
+    .sub-label:first-child { border-top: none; margin-top: 0; }
+    .sub-label.red    { color: #e05c5c; }
+    .sub-label.yellow { color: #e0a020; }
+    .sub-label.blue   { color: #5c8ee0; }
+
+    /* Toolbar */
+    .toolbar {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .toolbar-btn {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #888;
+      width: 26px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      position: relative;
+    }
+
+    .toolbar-btn:hover { background: #2e2e2e; color: #ddd; border-color: #555; }
+    .toolbar-btn.copied { color: #6ee7b7; border-color: #6ee7b7; }
+    .toolbar-btn svg { width: 13px; height: 13px; fill: currentColor; }
+
+    .toolbar-btn[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111;
+      color: #ccc;
+      font-size: 11px;
+      white-space: nowrap;
+      padding: 3px 8px;
+      border-radius: 4px;
+      pointer-events: none;
+      border: 1px solid #333;
+      z-index: 200;
+    }
+
+    /* Dropdown */
+    .menu-wrapper { position: relative; }
+
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      background: #252525;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      min-width: 150px;
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .dropdown.open { display: block; }
+
+    .dropdown button {
+      width: 100%;
+      background: none;
+      border: none;
+      color: #c8c8c8;
+      font-size: 13px;
+      padding: 9px 14px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dropdown button:hover { background: #333; color: #fff; }
+    .dropdown button svg { width: 13px; height: 13px; fill: currentColor; opacity: 0.7; }
+  </style>
+</head>
+<body>
+
+  <h1>Puntos de Restauración</h1>
+  <p class="subtitle">AI Helpers - Uso Interno</p>
+  <p class="meta">Prompts para generar Puntos de Restauración</p>
+
+  <details>
+    <summary>Punto de Restauración Conversación</summary>
+    <div class="content">
+      <div class="question">
+        Analiza toda la conversación actual y genera un PUNTO DE RESTAURACIÓN compacto.<br><br>
+        El punto de restauración es un bloque de texto que, pegado al inicio de una nueva conversación, reconstituye el contexto operacional completo sin necesidad de reexplicar nada.<br><br>
+        <span class="pill">&lt;contexto_operacional&gt;</span><br>
+        - Rol / persona activa: (skill, experto, instrucciones especiales vigentes)<br>
+        - Objetivo de la sesión: (qué se estaba resolviendo)<br>
+        - Modo de trabajo: (Auditoría / Exploración / Producción)<br>
+        <span class="pill">&lt;/contexto_operacional&gt;</span><br><br>
+        <span class="pill">&lt;decisiones_clave&gt;</span><br>
+        Lista numerada de decisiones tomadas y acuerdos establecidos.<br>
+        Para cada decisión: qué se decidió + razón principal.<br>
+        <span class="pill">&lt;/decisiones_clave&gt;</span><br><br>
+        <span class="pill">&lt;artefactos_producidos&gt;</span><br>
+        Lista de entregables generados.<br>
+        Para cada artefacto: nombre + propósito + estado (borrador / aprobado / pendiente revisión).<br>
+        <span class="pill">&lt;/artefactos_producidos&gt;</span><br><br>
+        <span class="pill">&lt;estado_actual&gt;</span><br>
+        - Última tarea completada:<br>
+        - Tarea en curso (si aplica):<br>
+        - Punto exacto donde se pausó:<br>
+        <span class="pill">&lt;/estado_actual&gt;</span><br><br>
+        <span class="pill">&lt;proximos_pasos&gt;</span><br>
+        Lista ordenada de acciones pendientes, con responsable y prioridad si se mencionaron.<br>
+        <span class="pill">&lt;/proximos_pasos&gt;</span><br><br>
+        <span class="pill">&lt;restricciones_activas&gt;</span><br>
+        Reglas, No-Hacer, criterios de calidad o restricciones establecidas que deben mantenerse.<br>
+        <span class="pill">&lt;/restricciones_activas&gt;</span><br><br>
+        <span class="pill">&lt;instruccion_de_arranque&gt;</span><br>
+        Instrucción de 2-3 líneas para activar la continuación en una nueva conversación.<br>
+        <span class="pill">&lt;/instruccion_de_arranque&gt;</span><br><br>
+        REGLAS: máximo 800 tokens · sin narrativa · omitir secciones vacías · el bloque debe ser autocontenido<br><br>
+        SALIDA: genera el resultado como un archivo <span class="pill">punto-restauracion.md</span> descargable usando un bloque de código Markdown con instrucciones para guardarlo, o bien usando la herramienta de creación de archivos si está disponible. El archivo debe contener únicamente el bloque XML del punto de restauración, sin texto adicional.
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Punto de Restauración Skills</summary>
+    <div class="content">
+      <div class="question">
+        Analiza toda la conversación actual y genera un PUNTO DE RESTAURACIÓN para la skill que estamos trabajando<br><br>
+        <span class="pill">&lt;skill_activa&gt;</span><br>
+        - Skill: [nombre-skill] — [descripción funcional en 1 línea]<br>
+        - Modo activo: [modo o fase de operación si la skill tiene modos diferenciados]<br>
+        - Fuente de verdad vigente: [archivo de referencia activo: SKILL.md / normativa / biblioteca / ninguno]<br>
+        <span class="pill">&lt;/skill_activa&gt;</span><br><br>
+        <span class="pill">&lt;estado_del_workflow&gt;</span><br>
+        - Etapa o paso completado: [nombre o número de la etapa]<br>
+        - Objeto de trabajo en esta sesión: [qué se estaba procesando — proceso, contenido, documento, caso]<br>
+        - Insumos procesados: [documentos / datos / artefactos analizados hasta ahora]<br>
+        - Insumos faltantes: [pendientes de recibir — o "ninguno"]<br>
+        - Punto exacto de pausa: [sección / criterio / ítem / paso donde se detuvo]<br>
+        <span class="pill">&lt;/estado_del_workflow&gt;</span><br><br>
+        <span class="pill">&lt;artefactos_y_resultados&gt;</span><br>
+        Por cada artefacto producido o resultado acumulado:<br>
+        - Nombre / identificador | Propósito | Estado: generado / revisado / aprobado / pendiente<br>
+        - Bugs o errores documentados (si aplica): tipo de error<br>
+        <span class="pill">&lt;/artefactos_y_resultados&gt;</span><br><br>
+        <span class="pill">&lt;evaluacion_parcial&gt;</span><br>
+        [Solo si la skill produce valoración acumulada: semáforo, conteo de hallazgos, etc.]<br>
+        - Valoración provisional: 🔴 / 🟡 / 🟢<br>
+        - Acumulado críticos / medios / bajos: N / N / N<br>
+        - Riesgo o alerta principal identificada hasta ahora:<br>
+        <span class="pill">&lt;/evaluacion_parcial&gt;</span><br><br>
+        <span class="pill">&lt;reglas_activas_de_la_sesion&gt;</span><br>
+        - [Restricción, corrección o excepción que debe mantenerse]<br>
+        - [Convención de nombrado, criterio de calidad o No-Hacer acordado]<br>
+        <span class="pill">&lt;/reglas_activas_de_la_sesion&gt;</span><br><br>
+        <span class="pill">&lt;pendientes&gt;</span><br>
+        - Etapas / criterios / secciones no recorridos aún<br>
+        - Verificaciones cruzadas o datos a solicitar al usuario<br>
+        - Informe / entregable final: generado [nombre-archivo] / pendiente generación<br>
+        <span class="pill">&lt;/pendientes&gt;</span><br><br>
+        <span class="pill">&lt;instruccion_de_arranque&gt;</span><br>
+        "Continuamos la skill [NOMBRE-SKILL]. Íbamos en [etapa / sección / criterio exacto].<br>
+        [Qué hacer primero al retomar — acción concreta en 1 línea]."<br>
+        <span class="pill">&lt;/instruccion_de_arranque&gt;</span><br><br>
+        REGLAS: máximo 600 tokens · sin narrativa · omitir secciones vacías · si un entregable ya fue generado, indicar nombre del archivo · el bloque debe ser autocontenido<br><br>
+        SALIDA: genera el resultado como un archivo <span class="pill">punto-restauracion-skill.md</span> descargable usando un bloque de código Markdown con instrucciones para guardarlo, o bien usando la herramienta de creación de archivos si está disponible. El archivo debe contener únicamente el bloque XML del punto de restauración, sin texto adicional.
+      </div>
+    </div>
+  </details>
+
+</body>
+<script>
+  const iconCopy = `<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
+  const iconDots = `<svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>`;
+  const iconShare = `<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>`;
+
+  document.querySelectorAll('.question').forEach(q => {
+    const getText = () => {
+      const clone = q.cloneNode(true);
+      clone.querySelectorAll('.tag, .tag-green, .toolbar').forEach(el => el.remove());
+      return clone.textContent.replace(/\s+/g, ' ').trim();
+    };
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'toolbar';
+
+    // Copy button
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'toolbar-btn';
+    copyBtn.setAttribute('data-tip', 'Copiar');
+    copyBtn.innerHTML = iconCopy;
+    copyBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(getText()).then(() => {
+        copyBtn.classList.add('copied');
+        copyBtn.setAttribute('data-tip', '¡Copiado!');
+        setTimeout(() => {
+          copyBtn.classList.remove('copied');
+          copyBtn.setAttribute('data-tip', 'Copiar');
+        }, 1500);
+      });
+    });
+    toolbar.appendChild(copyBtn);
+
+    // Dots menu
+    const menuWrapper = document.createElement('div');
+    menuWrapper.className = 'menu-wrapper';
+
+    const dotsBtn = document.createElement('button');
+    dotsBtn.className = 'toolbar-btn';
+    dotsBtn.innerHTML = iconDots;
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'dropdown';
+
+    const shareItem = document.createElement('button');
+    shareItem.innerHTML = `${iconShare} Compartir`;
+    shareItem.addEventListener('click', () => {
+      if (navigator.share) {
+        navigator.share({ text: getText() });
+      } else {
+        navigator.clipboard.writeText(getText());
+      }
+      dropdown.classList.remove('open');
+    });
+
+    const copyItem = document.createElement('button');
+    copyItem.innerHTML = `${iconCopy} Copiar texto`;
+    copyItem.addEventListener('click', () => {
+      navigator.clipboard.writeText(getText());
+      dropdown.classList.remove('open');
+    });
+
+    dropdown.appendChild(shareItem);
+    dropdown.appendChild(copyItem);
+
+    dotsBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.dropdown.open').forEach(d => {
+        if (d !== dropdown) d.classList.remove('open');
+      });
+      dropdown.classList.toggle('open');
+    });
+
+    menuWrapper.appendChild(dotsBtn);
+    menuWrapper.appendChild(dropdown);
+    toolbar.appendChild(menuWrapper);
+
+    q.appendChild(toolbar);
+  });
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  });
+</script>
+</html>

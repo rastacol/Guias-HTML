@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompts Skill — INC</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a1a;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 15px;
+      padding: 32px 24px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    h1 { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+    .subtitle { font-size: 13px; color: #888; margin-bottom: 32px; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #555;
+      margin: 40px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .section-label:first-of-type { margin-top: 0; }
+
+    details { border-bottom: 1px solid #2e2e2e; }
+
+    summary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 4px;
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+      color: #d0d0d0;
+      font-size: 15px;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    summary::before {
+      content: "▶";
+      font-size: 11px;
+      color: #666;
+      transition: transform 0.2s ease;
+      min-width: 12px;
+    }
+
+    details[open] > summary::before { transform: rotate(90deg); }
+    summary:hover { color: #fff; }
+    summary:hover::before { color: #aaa; }
+
+    .content {
+      padding: 4px 0 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .question {
+      position: relative;
+      background: #242424;
+      border-left: 3px solid #3a3a3a;
+      border-radius: 4px;
+      padding: 10px 16px 12px;
+      font-size: 14px;
+      color: #c8c8c8;
+      line-height: 1.6;
+    }
+
+    .question:hover { border-left-color: #555; color: #e8e8e8; }
+    .question:hover .toolbar { opacity: 1; }
+
+    /* Step label badge */
+    .step-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      background: #2a2a2a;
+      color: #777;
+      border-radius: 3px;
+      padding: 2px 8px;
+      margin-bottom: 8px;
+      letter-spacing: 0.05em;
+    }
+
+    /* Prompt text */
+    .prompt-text {
+      font-size: 13px;
+      color: #b0b0b0;
+      font-style: italic;
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: #1e1e1e;
+      border-radius: 4px;
+      border: 1px solid #2e2e2e;
+      line-height: 1.6;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .toolbar-btn {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #888;
+      width: 26px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      position: relative;
+    }
+
+    .toolbar-btn:hover { background: #2e2e2e; color: #ddd; border-color: #555; }
+    .toolbar-btn.copied { color: #6ee7b7; border-color: #6ee7b7; }
+    .toolbar-btn svg { width: 13px; height: 13px; fill: currentColor; }
+
+    .toolbar-btn[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111;
+      color: #ccc;
+      font-size: 11px;
+      white-space: nowrap;
+      padding: 3px 8px;
+      border-radius: 4px;
+      pointer-events: none;
+      border: 1px solid #333;
+      z-index: 200;
+    }
+
+    /* Dropdown */
+    .menu-wrapper { position: relative; }
+
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      background: #252525;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      min-width: 150px;
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .dropdown.open { display: block; }
+
+    .dropdown button {
+      width: 100%;
+      background: none;
+      border: none;
+      color: #c8c8c8;
+      font-size: 13px;
+      padding: 9px 14px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dropdown button:hover { background: #333; color: #fff; }
+    .dropdown button svg { width: 13px; height: 13px; fill: currentColor; opacity: 0.7; }
+  </style>
+</head>
+<body>
+
+  <h1>Gestion de Skill</h1>
+  <p class="subtitle">Prompts de control de sesión · Versión 1.0</p>
+
+  <p class="section-label">Ciclo de trabajo</p>
+
+  <details open>
+    <summary>Inicio de Proyecto Skill</summary>
+    <div class="content">
+      <div class="question">
+        <div class="step-label">PROMPT</div>
+        Vamos a desarrollar una Skill paso a paso con base en el pipeline adjunto. Primero, lee completamente el archivo antes de responder o iniciar cualquier acción.
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Inicio de Sesión</summary>
+    <div class="content">
+      <div class="question">
+        <div class="step-label">PROMPT</div>
+        El archivo adjunto contiene el contexto completo de un proyecto que tenemos en implementacion. Mi objetivo en esta sesión es continuar la implementación dal proyecto desde el ultimo punto donde nos quedamos. Antes de iniciar, confirma que has leído todo el contexto, lista las actividades pendientes y pregunta cual es la siguiente accion a ejecutar
+      </div>
+      <div class="question">
+        <div class="step-label">Inicio Conversación</div>
+        Lee F9, encuentra todo el contexto (estado, decisiones, pendientes, reglas activas), vamos a trabajar en la carpeta local. Espera para recibir instrucciones
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Fin de Actividad</summary>
+    <div class="content">
+      <div class="question">
+        <div class="step-label">PROMPT</div>
+        Antes de continuar, verifica: (1) el componente que acabamos de completar cumple con las reglas de comportamiento del proyecto, (2) no contradice ninguna decisión registrada en Estado-Proyecto.md, (3) si hay alguna inconsistencia, identifícala explícitamente.
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Fin de Sesión</summary>
+    <div class="content">
+      <div class="question">
+        <div class="step-label">PROMPT</div>
+        Genera una actualización del archivo de estado del proyecto que refleje los cambios realizados, siguiendo la estructura establecida en el archivo formato_estado.md de la knowledge base.
+      </div>
+    </div>
+  </details>
+
+</body>
+<script>
+  const iconCopy = `<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
+  const iconDots = `<svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>`;
+  const iconShare = `<svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>`;
+
+  document.querySelectorAll('.question').forEach(q => {
+    const getText = () => {
+      const clone = q.cloneNode(true);
+      clone.querySelectorAll('.step-label, .toolbar').forEach(el => el.remove());
+      return clone.textContent.trim();
+    };
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'toolbar';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'toolbar-btn';
+    copyBtn.setAttribute('data-tip', 'Copiar');
+    copyBtn.innerHTML = iconCopy;
+    copyBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(getText()).then(() => {
+        copyBtn.classList.add('copied');
+        copyBtn.setAttribute('data-tip', '¡Copiado!');
+        setTimeout(() => {
+          copyBtn.classList.remove('copied');
+          copyBtn.setAttribute('data-tip', 'Copiar');
+        }, 1500);
+      });
+    });
+    toolbar.appendChild(copyBtn);
+
+    const menuWrapper = document.createElement('div');
+    menuWrapper.className = 'menu-wrapper';
+
+    const dotsBtn = document.createElement('button');
+    dotsBtn.className = 'toolbar-btn';
+    dotsBtn.innerHTML = iconDots;
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'dropdown';
+
+    const shareItem = document.createElement('button');
+    shareItem.innerHTML = `${iconShare} Compartir`;
+    shareItem.addEventListener('click', () => {
+      if (navigator.share) {
+        navigator.share({ text: getText() });
+      } else {
+        navigator.clipboard.writeText(getText());
+      }
+      dropdown.classList.remove('open');
+    });
+
+    const copyItem = document.createElement('button');
+    copyItem.innerHTML = `${iconCopy} Copiar texto`;
+    copyItem.addEventListener('click', () => {
+      navigator.clipboard.writeText(getText());
+      dropdown.classList.remove('open');
+    });
+
+    dropdown.appendChild(shareItem);
+    dropdown.appendChild(copyItem);
+
+    dotsBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.dropdown.open').forEach(d => {
+        if (d !== dropdown) d.classList.remove('open');
+      });
+      dropdown.classList.toggle('open');
+    });
+
+    menuWrapper.appendChild(dotsBtn);
+    menuWrapper.appendChild(dropdown);
+    toolbar.appendChild(menuWrapper);
+
+    q.appendChild(toolbar);
+  });
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  });
+</script>
+</html>
